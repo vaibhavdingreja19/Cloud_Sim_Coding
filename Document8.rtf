@@ -1,0 +1,268 @@
+{\rtf1\ansi\ansicpg1252\deff0\nouicompat\deflang1033{\fonttbl{\f0\fnil Courier New;}{\f1\fnil\fcharset0 Calibri;}}
+{\colortbl ;\red63\green127\blue95;\red0\green0\blue255;\red127\green0\blue85;\red0\green0\blue0;\red63\green95\blue191;\red0\green0\blue192;\red42\green0\blue255;\red127\green159\blue191;}
+{\*\generator Riched20 10.0.17134}\viewkind4\uc1 
+\pard\sa200\sl276\slmult1\cf1\f0\fs20\lang9 /*\cf0\par
+\cf1  * Title:        CloudSim Toolkit\cf0\par
+\cf1  * Description:  CloudSim (Cloud Simulation) Toolkit for Modeling and Simulation\cf0\par
+\cf1  *               of Clouds\cf0\par
+\cf1  * \ul Licence\ulnone :      GPL - {{\field{\*\fldinst{HYPERLINK http://www.gnu.org/copyleft/gpl.html }}{\fldrslt{http://www.gnu.org/copyleft/gpl.html\ul0\cf0}}}}\cf0\f0\fs20\par
+\cf1  *\cf0\par
+\cf1  * Copyright (c) 2009, The University of \ul Melbourne\ulnone , Australia\cf0\par
+\cf1  */\cf0\par
+\par
+\cf3\b package\cf4\b0  org.cloudbus.cloudsim.examples.network;\cf0\par
+\par
+\cf3\b import\cf4\b0  java.text.DecimalFormat;\cf0\par
+\cf3\b import\cf4\b0  java.util.ArrayList;\cf0\par
+\cf3\b import\cf4\b0  java.util.Calendar;\cf0\par
+\cf3\b import\cf4\b0  java.util.LinkedList;\cf0\par
+\cf3\b import\cf4\b0  java.util.List;\cf0\par
+\par
+\cf3\b import\cf4\b0  org.cloudbus.cloudsim.Cloudlet;\cf0\par
+\cf3\b import\cf4\b0  org.cloudbus.cloudsim.CloudletSchedulerTimeShared;\cf0\par
+\cf3\b import\cf4\b0  org.cloudbus.cloudsim.Datacenter;\cf0\par
+\cf3\b import\cf4\b0  org.cloudbus.cloudsim.DatacenterBroker;\cf0\par
+\cf3\b import\cf4\b0  org.cloudbus.cloudsim.DatacenterCharacteristics;\cf0\par
+\cf3\b import\cf4\b0  org.cloudbus.cloudsim.Host;\cf0\par
+\cf3\b import\cf4\b0  org.cloudbus.cloudsim.Log;\cf0\par
+\cf3\b import\cf4\b0  org.cloudbus.cloudsim.NetworkTopology;\cf0\par
+\cf3\b import\cf4\b0  org.cloudbus.cloudsim.Pe;\cf0\par
+\cf3\b import\cf4\b0  org.cloudbus.cloudsim.Storage;\cf0\par
+\cf3\b import\cf4\b0  org.cloudbus.cloudsim.UtilizationModel;\cf0\par
+\cf3\b import\cf4\b0  org.cloudbus.cloudsim.UtilizationModelFull;\cf0\par
+\cf3\b import\cf4\b0  org.cloudbus.cloudsim.Vm;\cf0\par
+\cf3\b import\cf4\b0  org.cloudbus.cloudsim.VmAllocationPolicySimple;\cf0\par
+\cf3\b import\cf4\b0  org.cloudbus.cloudsim.VmSchedulerTimeShared;\cf0\par
+\cf3\b import\cf4\b0  org.cloudbus.cloudsim.core.CloudSim;\cf0\par
+\cf3\b import\cf4\b0  org.cloudbus.cloudsim.provisioners.BwProvisionerSimple;\cf0\par
+\cf3\b import\cf4\b0  org.cloudbus.cloudsim.provisioners.PeProvisionerSimple;\cf0\par
+\cf3\b import\cf4\b0  org.cloudbus.cloudsim.provisioners.RamProvisionerSimple;\cf0\par
+\par
+\cf5 /**\cf0\par
+\cf5  * A simple example showing how to create\cf0\par
+\cf5  * a \ul datacenter\ulnone  with one host and a network\cf0\par
+\cf5  * topology and and run one \ul cloudlet\ulnone  on it.\cf0\par
+\cf5  */\cf0\par
+\cf3\b public\cf4\b0  \cf3\b class\cf4\b0  Problem7 \{\cf0\par
+\par
+\cf4\tab\cf5 /** The \ul cloudlet\ulnone  list. */\cf0\par
+\cf4\tab\cf3\b private\cf4\b0  \cf3\b static\cf4\b0  List<Cloudlet> \cf6\i cloudletList\cf4\i0 ;\cf0\par
+\par
+\cf4\tab\cf5 /** The \ul vmlist\ulnone . */\cf0\par
+\cf4\tab\cf3\b private\cf4\b0  \cf3\b static\cf4\b0  List<Vm> \cf6\i vmlist\cf4\i0 ;\cf0\par
+\par
+\cf4\tab\cf5 /**\cf0\par
+\cf5\tab  * Creates main() to run this example\cf0\par
+\cf5\tab  */\cf0\par
+\cf4\tab\cf3\b public\cf4\b0  \cf3\b static\cf4\b0  \cf3\b void\cf4\b0  main(String[] args) \{\cf0\par
+\par
+\cf4\tab\tab Log.\i printLine\i0 (\cf7 "..."\cf4 );\cf0\par
+\par
+\cf4\tab\tab\cf3\b try\cf4\b0  \{\cf0\par
+\cf4\tab\tab\tab\cf1 // First step: Initialize the CloudSim package. It should be called\cf0\par
+\cf4\tab\tab\tab\cf1 // before creating any entities.\cf0\par
+\cf4\tab\tab\tab\cf3\b int\cf4\b0  num_user = 1;   \cf1 // number of cloud users\cf0\par
+\cf4\tab\tab\tab Calendar calendar = Calendar.\i getInstance\i0 ();\cf0\par
+\cf4\tab\tab\tab\cf3\b boolean\cf4\b0  trace_flag = \cf3\b false\cf4\b0 ;  \cf1 // mean trace events\cf0\par
+\par
+\cf4\tab\tab\tab\cf1 // Initialize the CloudSim library\cf0\par
+\cf4\tab\tab\tab CloudSim.\i init\i0 (num_user, calendar, trace_flag);\cf0\par
+\par
+\cf4\tab\tab\tab\cf1 // Second step: Create \ul Datacenters\cf0\ulnone\par
+\cf4\tab\tab\tab\cf1 //\ul Datacenters\ulnone  are the resource providers in CloudSim. We need at list one of them to run a CloudSim simulation\cf0\par
+\cf4\tab\tab\tab Datacenter datacenter0 = \i createDatacenter\i0 (\cf7 "Datacenter_0"\cf4 );\cf0\par
+\par
+\cf4\tab\tab\tab\cf1 //Third step: Create Broker\cf0\par
+\cf4\tab\tab\tab DatacenterBroker broker = \i createBroker\i0 ();\cf0\par
+\cf4\tab\tab\tab\cf3\b int\cf4\b0  brokerId = broker.getId();\cf0\par
+\par
+\cf4\tab\tab\tab\cf1 //Fourth step: Create one virtual machine\cf0\par
+\cf4\tab\tab\tab\cf6\i vmlist\cf4\i0  = \cf3\b new\cf4\b0  ArrayList<Vm>();\cf0\par
+\par
+\cf4\tab\tab\tab\cf1 //VM description\cf0\par
+\cf4\tab\tab\tab\cf3\b int\cf4\b0  vmid = 0;\cf0\par
+\cf4\tab\tab\tab\cf3\b int\cf4\b0  mips = 250;\cf0\par
+\cf4\tab\tab\tab\cf3\b long\cf4\b0  size = 10000; \cf1 //image size (MB)\cf0\par
+\cf4\tab\tab\tab\cf3\b int\cf4\b0  ram = 512; \cf1 //\ul vm\ulnone  memory (MB)\cf0\par
+\cf4\tab\tab\tab\cf3\b long\cf4\b0  bw = 1000;\cf0\par
+\cf4\tab\tab\tab\cf3\b int\cf4\b0  pesNumber = 1; \cf1 //number of \ul cpus\cf0\ulnone\par
+\cf4\tab\tab\tab String vmm = \cf7 "Xen"\cf4 ; \cf1 //VMM name\cf0\par
+\par
+\cf4\tab\tab\tab\cf1 //create VM\cf0\par
+\cf4\tab\tab\tab Vm vm1 = \cf3\b new\cf4\b0  Vm(vmid, brokerId, mips, pesNumber, ram, bw, size, vmm, \cf3\b new\cf4\b0  CloudletSchedulerTimeShared());\cf0\par
+\par
+\cf4\tab\tab\tab\cf1 //add the VM to the vmList\cf0\par
+\cf4\tab\tab\tab\cf6\i vmlist\cf4\i0 .add(vm1);\cf0\par
+\par
+\cf4\tab\tab\tab\cf1 //submit \ul vm\ulnone  list to the broker\cf0\par
+\cf4\tab\tab\tab broker.submitVmList(\cf6\i vmlist\cf4\i0 );\cf0\par
+\par
+\par
+\cf4\tab\tab\tab\cf1 //Fifth step: Create one \ul Cloudlet\cf0\ulnone\par
+\cf4\tab\tab\tab\cf6\i cloudletList\cf4\i0  = \cf3\b new\cf4\b0  ArrayList<Cloudlet>();\cf0\par
+\par
+\cf4\tab\tab\tab\cf1 //\ul Cloudlet\ulnone  properties\cf0\par
+\cf4\tab\tab\tab\cf3\b int\cf4\b0  id = 0;\cf0\par
+\cf4\tab\tab\tab\cf3\b long\cf4\b0  length = 40000;\cf0\par
+\cf4\tab\tab\tab\cf3\b long\cf4\b0  fileSize = 300;\cf0\par
+\cf4\tab\tab\tab\cf3\b long\cf4\b0  outputSize = 300;\cf0\par
+\cf4\tab\tab\tab UtilizationModel utilizationModel = \cf3\b new\cf4\b0  UtilizationModelFull();\cf0\par
+\par
+\cf4\tab\tab\tab Cloudlet cloudlet[]=\cf3\b new\cf4\b0  Cloudlet[10];\cf0\par
+\cf4\tab\tab\tab\cf3\b for\cf4\b0 (\cf3\b int\cf4\b0  i=0;i<10;i++)\cf0\par
+\cf4\tab\tab\tab\{\cf0\par
+\cf4\tab\tab\tab\cf0\par
+\cf4\tab\tab\tab\tab cloudlet[i]= \cf3\b new\cf4\b0  Cloudlet(id, length, pesNumber, fileSize, outputSize, utilizationModel, utilizationModel, utilizationModel);\cf0\par
+\cf4\tab\tab\tab\tab id++;\cf0\par
+\cf4\tab\tab\tab\tab cloudlet[i].setUserId(brokerId);\cf0\par
+\par
+\cf4\tab\tab\tab\cf1 //add the \ul cloudlet\ulnone  to the list\cf0\par
+\cf4\tab\tab\tab\cf6\i cloudletList\cf4\i0 .add(cloudlet[i]);\cf0\par
+\par
+\cf4\tab\tab\tab\}\cf0\par
+\cf4\tab\tab\tab\cf1 //submit \ul cloudlet\ulnone  list to the broker\cf0\par
+\cf4\tab\tab\tab broker.submitCloudletList(\cf6\i cloudletList\cf4\i0 );\cf0\par
+\par
+\cf4\tab\tab\tab\cf1 //Sixth step: configure network\cf0\par
+\cf4\tab\tab\tab\cf1 //load the network topology file\cf0\par
+\cf4\tab\tab\tab NetworkTopology.\i buildNetworkTopology\i0 (\cf7 "topology.brite"\cf4 );\cf0\par
+\par
+\cf4\tab\tab\tab\cf1 //maps CloudSim entities to BRITE entities\cf0\par
+\cf4\tab\tab\tab\cf1 //PowerDatacenter will correspond to BRITE node 0\cf0\par
+\cf4\tab\tab\tab\cf3\b int\cf4\b0  briteNode=0;\cf0\par
+\cf4\tab\tab\tab NetworkTopology.\i mapNode\i0 (datacenter0.getId(),briteNode);\cf0\par
+\par
+\cf4\tab\tab\tab\cf1 //Broker will correspond to BRITE node 3\cf0\par
+\cf4\tab\tab\tab briteNode=3;\cf0\par
+\cf4\tab\tab\tab NetworkTopology.\i mapNode\i0 (broker.getId(),briteNode);\cf0\par
+\par
+\par
+\cf4\tab\tab\tab\cf1 // Seventh step: Starts the simulation\cf0\par
+\cf4\tab\tab\tab CloudSim.\i startSimulation\i0 ();\cf0\par
+\par
+\par
+\cf4\tab\tab\tab\cf1 // Final step: Print results when simulation is over\cf0\par
+\cf4\tab\tab\tab List<Cloudlet> newList = broker.getCloudletReceivedList();\cf0\par
+\par
+\cf4\tab\tab\tab CloudSim.\i stopSimulation\i0 ();\cf0\par
+\par
+\cf4\tab\tab\tab\i printCloudletList\i0 (newList);\cf0\par
+\par
+\cf4\tab\tab\tab Log.\i printLine\i0 (\cf7 ".."\cf4 );\cf0\par
+\cf4\tab\tab\}\cf0\par
+\cf4\tab\tab\cf3\b catch\cf4\b0  (Exception e) \{\cf0\par
+\cf4\tab\tab\tab e.printStackTrace();\cf0\par
+\cf4\tab\tab\tab Log.\i printLine\i0 (\cf7 "The simulation has been terminated due to an unexpected error"\cf4 );\cf0\par
+\cf4\tab\tab\}\cf0\par
+\cf4\tab\}\cf0\par
+\par
+\cf4\tab\cf3\b private\cf4\b0  \cf3\b static\cf4\b0  Datacenter createDatacenter(String name)\{\cf0\par
+\par
+\cf4\tab\tab\cf1 // Here are the steps needed to create a PowerDatacenter:\cf0\par
+\cf4\tab\tab\cf1 // 1. We need to create a list to store\cf0\par
+\cf4\tab\tab\cf1 //    our machine\cf0\par
+\cf4\tab\tab List<Host> hostList = \cf3\b new\cf4\b0  ArrayList<Host>();\cf0\par
+\par
+\cf4\tab\tab\cf1 // 2. A Machine contains one or more PEs or CPUs/Cores.\cf0\par
+\cf4\tab\tab\cf1 // In this example, it will have only one core.\cf0\par
+\cf4\tab\tab List<Pe> peList = \cf3\b new\cf4\b0  ArrayList<Pe>();\cf0\par
+\par
+\cf4\tab\tab\cf3\b int\cf4\b0  mips = 1000;\cf0\par
+\par
+\cf4\tab\tab\cf1 // 3. Create PEs and add these into a list.\cf0\par
+\cf4\tab\tab peList.add(\cf3\b new\cf4\b0  Pe(0, \cf3\b new\cf4\b0  PeProvisionerSimple(mips))); \cf1 // need to store \ul Pe\ulnone  id and MIPS Rating\cf0\par
+\par
+\cf4\tab\tab\cf1 //4. Create Host with its id and list of PEs and add them to the list of machines\cf0\par
+\cf4\tab\tab\cf3\b int\cf4\b0  hostId=0;\cf0\par
+\cf4\tab\tab\cf3\b int\cf4\b0  ram = 2048; \cf1 //host memory (MB)\cf0\par
+\cf4\tab\tab\cf3\b long\cf4\b0  storage = 1000000; \cf1 //host storage\cf0\par
+\cf4\tab\tab\cf3\b int\cf4\b0  bw = 10000;\cf0\par
+\par
+\cf4\tab\tab hostList.add(\cf0\par
+\cf4\tab\tab\tab\tab\cf3\b new\cf4\b0  Host(\cf0\par
+\cf4\tab\tab\tab\tab\tab hostId,\cf0\par
+\cf4\tab\tab\tab\tab\tab\cf3\b new\cf4\b0  RamProvisionerSimple(ram),\cf0\par
+\cf4\tab\tab\tab\tab\tab\cf3\b new\cf4\b0  BwProvisionerSimple(bw),\cf0\par
+\cf4\tab\tab\tab\tab\tab storage,\cf0\par
+\cf4\tab\tab\tab\tab\tab peList,\cf0\par
+\cf4\tab\tab\tab\tab\tab\cf3\b new\cf4\b0  VmSchedulerTimeShared(peList)\cf0\par
+\cf4\tab\tab\tab\tab )\cf0\par
+\cf4\tab\tab\tab ); \cf1 // This is our machine\cf0\par
+\par
+\cf4\tab\tab\cf1 // 5. Create a DatacenterCharacteristics object that stores the\cf0\par
+\cf4\tab\tab\cf1 //    properties of a data center: architecture, OS, list of\cf0\par
+\cf4\tab\tab\cf1 //    Machines, allocation policy: time- or space-shared, time zone\cf0\par
+\cf4\tab\tab\cf1 //    and its price (G$/\ul Pe\ulnone  time unit).\cf0\par
+\cf4\tab\tab String arch = \cf7 "x86"\cf4 ;      \cf1 // system architecture\cf0\par
+\cf4\tab\tab String os = \cf7 "Linux"\cf4 ;          \cf1 // operating system\cf0\par
+\cf4\tab\tab String vmm = \cf7 "Xen"\cf4 ;\cf0\par
+\cf4\tab\tab\cf3\b double\cf4\b0  time_zone = 10.0;         \cf1 // time zone this resource located\cf0\par
+\cf4\tab\tab\cf3\b double\cf4\b0  cost = 3.0;              \cf1 // the cost of using processing in this resource\cf0\par
+\cf4\tab\tab\cf3\b double\cf4\b0  costPerMem = 0.05;\tab\tab\cf1 // the cost of using memory in this resource\cf0\par
+\cf4\tab\tab\cf3\b double\cf4\b0  costPerStorage = 0.001;\tab\cf1 // the cost of using storage in this resource\cf0\par
+\cf4\tab\tab\cf3\b double\cf4\b0  costPerBw = 0.0;\tab\tab\tab\cf1 // the cost of using \ul bw\ulnone  in this resource\cf0\par
+\cf4\tab\tab LinkedList<Storage> storageList = \cf3\b new\cf4\b0  LinkedList<Storage>();\tab\cf1 //we are not adding SAN devices by now\cf0\par
+\par
+\cf4\tab\tab DatacenterCharacteristics characteristics = \cf3\b new\cf4\b0  DatacenterCharacteristics(\cf0\par
+\cf4\tab\tab\tab\tab arch, os, vmm, hostList, time_zone, cost, costPerMem,\cf0\par
+\cf4\tab\tab\tab\tab costPerStorage, costPerBw);\cf0\par
+\par
+\par
+\cf4\tab\tab\cf1 // 6. Finally, we need to create a PowerDatacenter object.\cf0\par
+\cf4\tab\tab Datacenter datacenter = \cf3\b null\cf4\b0 ;\cf0\par
+\cf4\tab\tab\cf3\b try\cf4\b0  \{\cf0\par
+\cf4\tab\tab\tab datacenter = \cf3\b new\cf4\b0  Datacenter(name, characteristics, \cf3\b new\cf4\b0  VmAllocationPolicySimple(hostList), storageList, 0);\cf0\par
+\cf4\tab\tab\} \cf3\b catch\cf4\b0  (Exception e) \{\cf0\par
+\cf4\tab\tab\tab e.printStackTrace();\cf0\par
+\cf4\tab\tab\}\cf0\par
+\par
+\cf4\tab\tab\cf3\b return\cf4\b0  datacenter;\cf0\par
+\cf4\tab\}\cf0\par
+\par
+\cf4\tab\cf1 //We strongly encourage users to develop their own broker policies, to submit \ul vms\ulnone  and \ul cloudlets\ulnone  according\cf0\par
+\cf4\tab\cf1 //to the specific rules of the simulated scenario\cf0\par
+\cf4\tab\cf3\b private\cf4\b0  \cf3\b static\cf4\b0  DatacenterBroker createBroker()\{\cf0\par
+\par
+\cf4\tab\tab DatacenterBroker broker = \cf3\b null\cf4\b0 ;\cf0\par
+\cf4\tab\tab\cf3\b try\cf4\b0  \{\cf0\par
+\cf4\tab\tab\tab broker = \cf3\b new\cf4\b0  DatacenterBroker(\cf7 "Broker"\cf4 );\cf0\par
+\cf4\tab\tab\} \cf3\b catch\cf4\b0  (Exception e) \{\cf0\par
+\cf4\tab\tab\tab e.printStackTrace();\cf0\par
+\cf4\tab\tab\tab\cf3\b return\cf4\b0  \cf3\b null\cf4\b0 ;\cf0\par
+\cf4\tab\tab\}\cf0\par
+\cf4\tab\tab\cf3\b return\cf4\b0  broker;\cf0\par
+\cf4\tab\}\cf0\par
+\par
+\cf4\tab\cf5 /**\cf0\par
+\cf5\tab  * Prints the \ul Cloudlet\ulnone  objects\cf0\par
+\cf5\tab  * \cf8\b @param\cf5\b0  list  list of \ul Cloudlets\cf0\ulnone\par
+\cf5\tab  */\cf0\par
+\cf4\tab\cf3\b private\cf4\b0  \cf3\b static\cf4\b0  \cf3\b void\cf4\b0  printCloudletList(List<Cloudlet> list) \{\cf0\par
+\cf4\tab\tab\cf3\b int\cf4\b0  size = list.size();\cf0\par
+\cf4\tab\tab Cloudlet cloudlet;\cf0\par
+\par
+\cf4\tab\tab String indent = \cf7 "    "\cf4 ;\cf0\par
+\cf4\tab\tab Log.\i printLine\i0 ();\cf0\par
+\cf4\tab\tab Log.\i printLine\i0 (\cf7 "========== OUTPUT =========="\cf4 );\cf0\par
+\cf4\tab\tab Log.\i printLine\i0 (\cf7 "Cloudlet ID"\cf4  + indent + \cf7 "STATUS"\cf4  + indent +\cf0\par
+\cf4\tab\tab\tab\tab\cf7 "Data center ID"\cf4  + indent + \cf7 "VM ID"\cf4  + indent + \cf7 "Time"\cf4  + indent + \cf7 "Start Time"\cf4  + indent + \cf7 "Finish Time"\cf4 );\cf0\par
+\par
+\cf4\tab\tab\cf3\b for\cf4\b0  (\cf3\b int\cf4\b0  i = 0; i < size; i++) \{\cf0\par
+\cf4\tab\tab\tab cloudlet = list.get(i);\cf0\par
+\cf4\tab\tab\tab Log.\i print\i0 (indent + cloudlet.getCloudletId() + indent + indent);\cf0\par
+\par
+\cf4\tab\tab\tab\cf3\b if\cf4\b0  (cloudlet.getCloudletStatus() == Cloudlet.\cf6\i SUCCESS\cf4\i0 )\{\cf0\par
+\cf4\tab\tab\tab\tab Log.\i print\i0 (\cf7 "SUCCESS"\cf4 );\cf0\par
+\par
+\cf4\tab\tab\tab\tab DecimalFormat dft = \cf3\b new\cf4\b0  DecimalFormat(\cf7 "###.##"\cf4 );\cf0\par
+\cf4\tab\tab\tab\tab Log.\i printLine\i0 ( indent + indent + cloudlet.getResourceId() + indent + indent + indent + cloudlet.getVmId() +\cf0\par
+\cf4\tab\tab\tab\tab\tab\tab indent + indent + dft.format(cloudlet.getActualCPUTime()) + indent + indent + dft.format(cloudlet.getExecStartTime())+\cf0\par
+\cf4\tab\tab\tab\tab\tab\tab indent + indent + dft.format(cloudlet.getFinishTime()));\cf0\par
+\cf4\tab\tab\tab\}\cf0\par
+\cf4\tab\tab\}\cf0\par
+\par
+\cf4\tab\}\cf0\par
+\cf4\}\cf0\par
+\f1\fs22\par
+}
+ 
